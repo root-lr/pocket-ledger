@@ -58,7 +58,7 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew :app:integrationTest
+      - run: ./gradlew :app:integrationTest -Pit.verbose > it.log 2>&1 || (grep -iE 'debezium|connector|outbox|kafka|ERROR|Exception|FAILED|tests completed' it.log | grep -vE '^\s+at ' | cut -c1-400 | head -300; exit 1)
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

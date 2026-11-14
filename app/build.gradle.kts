@@ -59,6 +59,7 @@ val integrationTest by tasks.registering(Test::class) {
     useJUnitPlatform { includeTags("integration") }
     shouldRunAfter(tasks.named("test"))
     systemProperty("testcontainers.reuse.enable", "true")
+    testLogging { showStandardStreams = providers.gradleProperty("it.verbose").isPresent }
     // Docker Engine 29+ refuse les API < 1.44 ; docker-java (Testcontainers) lit cette propriété.
     systemProperty("api.version", providers.gradleProperty("docker.api.version").getOrElse("1.44"))
 }
