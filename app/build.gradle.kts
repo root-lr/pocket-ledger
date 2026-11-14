@@ -59,6 +59,17 @@ val integrationTest by tasks.registering(Test::class) {
     useJUnitPlatform { includeTags("integration") }
     shouldRunAfter(tasks.named("test"))
     systemProperty("testcontainers.reuse.enable", "true")
+    // Docker Engine 29+ refuse les API < 1.44 ; docker-java (Testcontainers) lit cette propriété.
+    systemProperty("api.version", providers.gradleProperty("docker.api.version").getOrElse("1.44"))
+}
+
+// La couverture se mesure sur les tests unitaires : koverVerify ne doit pas lancer les tests Docker.
+kover {
+    currentProject {
+        instrumentation {
+            disabledForTestTasks.add("integrationTest")
+        }
+    }
 }
 
 springBoot {
