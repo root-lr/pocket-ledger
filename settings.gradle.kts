@@ -30,4 +30,5 @@ include(
     "modules:budgeting",
     "modules:analytics",
     "modules:alerting",
+    "app",
 )

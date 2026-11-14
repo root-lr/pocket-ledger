@@ -1,0 +1,162 @@
+spring:
+  application:
+    name: pocketledger
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/pocketledger}
+    username: ${DB_USER:pocketledger}
+    password: ${DB_PASSWORD:pocketledger}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+  flyway:
+    enabled: true
+  jooq:
+    sql-dialect: postgres
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 500ms
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        isolation.level: read_committed
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,application/problem+json
+    min-response-size: 1024
+  shutdown: graceful
+
+pocketledger:
+  public-url: ${PUBLIC_URL:http://localhost:8080}
+  admin-emails: ${ADMIN_EMAILS:}
+  rate-limit:
+    per-minute: ${RATE_LIMIT_PER_MINUTE:100}
+  crypto:
+    # 32 octets en base64. Valeurs de DÉVELOPPEMENT uniquement : en prod, Docker secrets / variables d'environnement.
+    master-key: ${CRYPTO_MASTER_KEY:ZGV2LW9ubHktbWFzdGVyLWtleS0zMi1ieXRlcy0hISE=}
+    blind-index-key: ${CRYPTO_BLIND_INDEX_KEY:ZGV2LW9ubHktYmxpbmQtaW5kZXgta2V5LTMyYnl0ZXM=}
+  jwt:
+    issuer: ${JWT_ISSUER:https://api.pocketledger.dev}
+    key-id: ${JWT_KEY_ID:pocketledger-1}
+    private-key: ${JWT_PRIVATE_KEY:}
+    public-key: ${JWT_PUBLIC_KEY:}
+  fx:
+    pivot: USD
+    provider:
+      name: ${FX_PROVIDER_NAME:http}
+      url: ${FX_PROVIDER_URL:}
+      app-id: ${FX_PROVIDER_APP_ID:}
+  kafka:
+    enabled: true
+    partitions: ${KAFKA_PARTITIONS:3}
+    replicas: ${KAFKA_REPLICAS:1}
+    concurrency: 3
+  debezium:
+    connect-url: ${DEBEZIUM_CONNECT_URL:http://localhost:8083}
+    connector-name: pocketledger-outbox
+    slot-name: pocketledger_outbox
+    database:
+      host: ${DEBEZIUM_DB_HOST:postgres}
+      port: 5432
+      name: ${DEBEZIUM_DB_NAME:pocketledger}
+      user: ${DB_USER:pocketledger}
+      password: ${DB_PASSWORD:pocketledger}
+  exports:
+    dir: ${EXPORTS_DIR:${java.io.tmpdir}/pocketledger-exports}
+
+resilience4j:
+  retry:
+    instances:
+      fx-provider:
+        max-attempts: 3
+        wait-duration: 2s
+  circuitbreaker:
+    instances:
+      fx-provider:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5m
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    redis:
+      enabled: true
+  metrics:
+    tags:
+      application: pocketledger
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+    metrics:
+      export:
+        enabled: ${OTLP_METRICS_ENABLED:false}
+        url: ${OTLP_METRICS_ENDPOINT:http://localhost:4318/v1/metrics}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    io.pocketledger: INFO
+    org.apache.kafka: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  structured:
+    format:
+      console: ecs
+management:
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:0.2}
