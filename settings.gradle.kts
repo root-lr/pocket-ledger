@@ -25,4 +25,5 @@ include(
     "modules:crypto",
     "modules:fx",
     "modules:identity",
+    "modules:ledger",
 )
