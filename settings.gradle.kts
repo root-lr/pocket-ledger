@@ -22,4 +22,5 @@ include(
     "modules:shared-kernel",
     "modules:events",
     "modules:platform",
+    "modules:crypto",
 )
