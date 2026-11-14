@@ -26,4 +26,5 @@ include(
     "modules:fx",
     "modules:identity",
     "modules:ledger",
+    "modules:categorization",
 )
