@@ -1,0 +1,39 @@
+name: Diagnostics
+
+# Lancement manuel : applique ktlintFormat et publie le correctif, plus les rapports de compilation et de lint.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Formatage automatique
+        run: ./gradlew ktlintFormat --continue > format.txt 2>&1 || true
+      - name: Correctif de formatage
+        run: git diff > ktlint-format.patch
+      - name: Compilation
+        run: ./gradlew compileKotlin compileTestKotlin --continue > compile.txt 2>&1 || true
+      - name: Tests unitaires
+        run: ./gradlew test --continue > test.txt 2>&1 || true
+      - name: Lint strict
+        run: ./gradlew ktlintCheck detekt -Plint.strict=true --continue > lint.txt 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics
+          path: |
+            *.txt
+            ktlint-format.patch
+            contracts/events/
+            **/build/reports/detekt/*.txt
+            **/build/test-results/test/*.xml
+          retention-days: 3

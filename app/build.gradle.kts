@@ -61,7 +61,6 @@ val integrationTest by tasks.registering(Test::class) {
     systemProperty("testcontainers.reuse.enable", "true")
 }
 
-
 springBoot {
     mainClass.set("io.pocketledger.app.PocketLedgerApplicationKt")
     buildInfo()
