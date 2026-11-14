@@ -5,7 +5,6 @@ import io.pocketledger.app.support.IntegrationTest
 import io.pocketledger.shared.ports.FieldCipher
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.ignoreExceptions
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

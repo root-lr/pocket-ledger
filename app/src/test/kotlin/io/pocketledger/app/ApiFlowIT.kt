@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldNotBe
 import io.pocketledger.app.support.IntegrationTest
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.ignoreExceptions
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
