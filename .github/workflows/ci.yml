@@ -77,13 +77,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Vulnérabilités (Trivy, dépôt)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scanners: vuln,secret,misconfig
-          severity: HIGH,CRITICAL
-          exit-code: "1"
-          ignore-unfixed: true
+        run: |
+          docker run --rm -v "$PWD:/src" aquasec/trivy:latest fs /src \
+            --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
 
   image:
     name: Image Docker (Jib → GHCR)

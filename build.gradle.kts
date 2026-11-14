@@ -20,6 +20,12 @@ allprojects {
     version = "1.0.0-SNAPSHOT"
 }
 
+// Le catalogue n'est accessible qu'au niveau racine : on capture les valeurs avant subprojects {}.
+val kotlinVersion = libs.versions.kotlin.get()
+val kotestAssertions = libs.kotest.assertions
+val kotestProperty = libs.kotest.property
+val mockk = libs.mockk
+
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
@@ -30,7 +36,7 @@ subprojects {
 
     extensions.configure<DependencyManagementExtension> {
         // Le BOM Boot impose sinon sa propre version de Kotlin (kotlin-reflect incompatible avec la métadonnée 2.2).
-        imports { mavenBom(SpringBootPlugin.BOM_COORDINATES) { bomProperty("kotlin.version", libs.versions.kotlin.get()) } }
+        imports { mavenBom(SpringBootPlugin.BOM_COORDINATES) { bomProperty("kotlin.version", kotlinVersion) } }
     }
 
     extensions.configure<KotlinJvmProjectExtension> {
@@ -64,9 +70,9 @@ subprojects {
         "implementation"("org.jetbrains.kotlin:kotlin-reflect")
         "testImplementation"("org.junit.jupiter:junit-jupiter")
         "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
-        "testImplementation"(libs.kotest.assertions)
-        "testImplementation"(libs.kotest.property)
-        "testImplementation"(libs.mockk)
+        "testImplementation"(kotestAssertions)
+        "testImplementation"(kotestProperty)
+        "testImplementation"(mockk)
         "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     }
 
