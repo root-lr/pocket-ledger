@@ -1,0 +1,15 @@
+#!/bin/sh
+# Vérifie chaque commit poussé : message, auteur et committer.
+EXPECTED_EMAIL="83064138+root-lr@users.noreply.github.com"
+zero=0000000000000000000000000000000000000000
+while read local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue
+  if [ "$remote_sha" = "$zero" ]; then range="$local_sha"; else range="$remote_sha..$local_sha"; fi
+  if git log --format='%an <%ae> | %cn <%ce> | %s%n%b' "$range" | grep -qiE 'co-authored|generated (with|by)|claude|anthropic|chatgpt|openai|copilot'; then
+    echo "pre-push : mention interdite détectée, push refusé." >&2; exit 1
+  fi
+  if git log --format='%ae%n%ce' "$range" | grep -qv "^$EXPECTED_EMAIL$"; then
+    echo "pre-push : identité inattendue dans les commits, push refusé." >&2; exit 1
+  fi
+done
+exit 0
