@@ -20,4 +20,5 @@ dependencyResolutionManagement {
 
 include(
     "modules:shared-kernel",
+    "modules:events",
 )
