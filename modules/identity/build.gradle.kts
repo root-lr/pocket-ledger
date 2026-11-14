@@ -1,0 +1,14 @@
+plugins {
+    `java-library`
+    id("org.jetbrains.kotlin.jvm")
+    id("org.jetbrains.kotlin.plugin.spring")
+    id("org.jetbrains.kotlinx.kover")
+}
+
+dependencies {
+    implementation(project(":modules:platform"))
+    implementation(project(":modules:crypto"))
+    api("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation(libs.bouncycastle)
+    implementation("com.github.ben-manes.caffeine:caffeine")
+}

@@ -24,4 +24,5 @@ include(
     "modules:platform",
     "modules:crypto",
     "modules:fx",
+    "modules:identity",
 )
