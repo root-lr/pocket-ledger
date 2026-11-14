@@ -89,12 +89,13 @@ abstract class IntegrationTest {
     }
 
     companion object {
-        private val network: Network = Network.newNetwork()
+        // Nom distinct de la propriété `network` des conteneurs, qui la masquerait dans les blocs apply.
+        private val sharedNetwork: Network = Network.newNetwork()
 
         // apply plutôt que des appels chaînés : le type auto-référencé de Testcontainers s'infère mal en Kotlin.
         private val postgres =
             PostgreSQLContainer<Nothing>("postgres:16-alpine").apply {
-                withNetwork(network)
+                withNetwork(sharedNetwork)
                 withNetworkAliases("postgres")
                 withDatabaseName("pocketledger")
                 withUsername("pocketledger")
@@ -104,29 +105,21 @@ abstract class IntegrationTest {
 
         private val kafka: KafkaContainer =
             KafkaContainer("apache/kafka:3.9.1")
-                .withNetwork(network)
+                .withNetwork(sharedNetwork)
                 .withNetworkAliases("kafka")
                 .withListener("kafka:19092")
 
         private val connect: DebeziumContainer =
             DebeziumContainer("quay.io/debezium/connect:3.1")
-                .withNetwork(network)
-                .withKafka(network, "kafka:19092")
+                .withNetwork(sharedNetwork)
+                .withKafka(sharedNetwork, "kafka:19092")
                 .dependsOn(kafka)
 
         private val redis = GenericContainer<Nothing>("redis:7-alpine").apply { withExposedPorts(6379) }
 
         init {
             Startables.deepStart(postgres, kafka, connect, redis).join()
-            // Diagnostic réseau temporaire : Kafka Connect joint-il PostgreSQL ?
-            val nets = postgres.containerInfo.networkSettings.networks.map { "${it.key}=${it.value.ipAddress}" }
-            val connectNets = connect.containerInfo.networkSettings.networks.map { "${it.key}=${it.value.ipAddress}" }
-            println("DIAG postgres networks=$nets connect networks=$connectNets aliases=${postgres.networkAliases}")
-            listOf("postgres", "kafka").forEach { host ->
-                val port = if (host == "postgres") 5432 else 19092
-                val probe = connect.execInContainer("bash", "-c", "timeout 3 bash -c '</dev/tcp/$host/$port' && echo OK || echo FAIL")
-                println("DIAG tcp $host:$port -> ${probe.stdout.trim()} ${probe.stderr.trim()}")
-            }
+        }
         }
 
         @JvmStatic
@@ -139,12 +132,7 @@ abstract class IntegrationTest {
             registry.add("spring.data.redis.host", redis::getHost)
             registry.add("spring.data.redis.port") { redis.getMappedPort(6379) }
             registry.add("pocketledger.debezium.connect-url", connect::getTarget)
-            // Adresse de PostgreSQL vue depuis Kafka Connect, sur le réseau Docker partagé.
-            registry.add("pocketledger.debezium.database.host") {
-                postgres.containerInfo.networkSettings.networks.values
-                    .first { !it.ipAddress.isNullOrBlank() }
-                    .ipAddress
-            }
+            registry.add("pocketledger.debezium.database.host") { "postgres" }
             registry.add("pocketledger.debezium.database.user", postgres::getUsername)
             registry.add("pocketledger.debezium.database.password", postgres::getPassword)
             registry.add("pocketledger.debezium.database.name", postgres::getDatabaseName)
