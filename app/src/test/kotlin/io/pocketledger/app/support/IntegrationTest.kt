@@ -120,7 +120,6 @@ abstract class IntegrationTest {
         init {
             Startables.deepStart(postgres, kafka, connect, redis).join()
         }
-        }
 
         @JvmStatic
         @DynamicPropertySource
