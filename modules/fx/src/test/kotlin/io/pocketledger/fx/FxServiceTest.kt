@@ -32,7 +32,7 @@ class FxServiceTest {
     private val fx = FxService(rates, catalog, "USD")
 
     @Test
-    fun `même devise : montant inchangé`() {
+    fun `même devise - montant inchangé`() {
         fx.convert(1234, CurrencyCode("EUR"), CurrencyCode("EUR"), date) shouldBe 1234
     }
 
@@ -60,7 +60,7 @@ class FxServiceTest {
     }
 
     @Test
-    fun `taux manquant : null plutôt qu'un montant faux`() {
+    fun `taux manquant - null plutôt qu'un montant faux`() {
         fx.convert(1000, CurrencyCode("USD"), CurrencyCode("NGN"), date) shouldBe null
     }
 }

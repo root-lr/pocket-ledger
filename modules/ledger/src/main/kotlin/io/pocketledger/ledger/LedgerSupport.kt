@@ -71,7 +71,7 @@ class LedgerExporter(private val queries: LedgerQueries) : UserDataExporter {
         var cursor: String? = null
         do {
             val page = queries.transactions(userId, TransactionFilter(includeVoided = true), cursor, 200)
-            transactions += page.items
+            transactions.addAll(page.items)
             cursor = page.nextCursor
         } while (cursor != null)
         return mapOf("accounts" to queries.accounts(userId), "transactions" to transactions)

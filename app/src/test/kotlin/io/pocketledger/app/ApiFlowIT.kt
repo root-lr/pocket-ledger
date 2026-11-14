@@ -18,7 +18,7 @@ class ApiFlowIT : IntegrationTest() {
     private val today = LocalDate.now().toString()
 
     @Test
-    fun `authentification : rotation du refresh token et détection de réutilisation`() {
+    fun `authentification - rotation du refresh token et détection de réutilisation`() {
         val session = register()
         val first = call(HttpMethod.POST, "/api/v1/auth/refresh", null, mapOf("refreshToken" to session.refreshToken))
         first.statusCode.value() shouldBe 200
@@ -93,7 +93,7 @@ class ApiFlowIT : IntegrationTest() {
     }
 
     @Test
-    fun `budget à 85 pourcent : alerte émise et dépense convertie depuis le XOF`() {
+    fun `budget à 85 pourcent - alerte émise et dépense convertie depuis le XOF`() {
         val session = register(currency = "EUR")
         val accountId = openAccount(session, currency = "XOF", opening = "1000000")
         call(HttpMethod.POST, "/api/v1/budgets", session, mapOf("categoryId" to "food", "limit" to "100"))
@@ -121,7 +121,7 @@ class ApiFlowIT : IntegrationTest() {
     }
 
     @Test
-    fun `virement entre devises : débit, crédit et taux implicite`() {
+    fun `virement entre devises - débit, crédit et taux implicite`() {
         val session = register()
         val eur = openAccount(session, currency = "EUR", opening = "500")
         val xof = openAccount(session, currency = "XOF", opening = "0")

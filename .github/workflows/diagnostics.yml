@@ -29,9 +29,10 @@ jobs:
         run: ./gradlew ktlintCheck detekt -Plint.strict=true --continue > lint.txt 2>&1 || true
       - name: Rapports dans le journal
         run: |
-          echo "::group::compile"; grep -E "^e: |What went wrong|BUILD" compile.txt || true; echo "::endgroup::"
-          echo "::group::test"; grep -E "FAILED|tests completed|BUILD|What went wrong|^e: " test.txt || true; echo "::endgroup::"
-          echo "::group::lint"; grep -vE "^(> Task|$)" lint.txt | head -400 || true; echo "::endgroup::"
+          for f in format compile test lint; do
+            echo "=====$f====="
+            grep -vE "^(> Task|$)" $f.txt | head -300 || true
+          done
           echo "===PATCH-BEGIN==="; base64 -w0 ktlint-format.patch; echo; echo "===PATCH-END==="
           echo "===CONTRACTS-BEGIN==="; tar czf - contracts/events | base64 -w0; echo; echo "===CONTRACTS-END==="
       - uses: actions/upload-artifact@v4

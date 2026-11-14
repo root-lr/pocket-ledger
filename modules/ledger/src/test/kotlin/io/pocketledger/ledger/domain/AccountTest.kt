@@ -141,7 +141,7 @@ class AccountTest {
     }
 
     @Test
-    fun `propriété : le solde égale l'ouverture plus la somme des transactions non annulées`() =
+    fun `propriété - le solde égale l'ouverture plus la somme des transactions non annulées`() =
         runBlocking<Unit> {
             checkAll(Arb.long(-1_000_000, 1_000_000), Arb.list(Arb.long(-50_000, 50_000).let { a -> a }, 1..30)) { opening, amounts ->
                 val account = given(opened(opening))
