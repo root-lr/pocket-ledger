@@ -27,4 +27,5 @@ include(
     "modules:identity",
     "modules:ledger",
     "modules:categorization",
+    "modules:budgeting",
 )
