@@ -13,6 +13,7 @@ import java.time.LocalDate
 class FxServiceTest {
     private val date = LocalDate.of(2026, 11, 5)
     private val digits = mapOf("EUR" to 2, "USD" to 2, "XOF" to 0, "JPY" to 0, "KWD" to 3, "NGN" to 2)
+
     // Objet écrit à la main : MockK gère mal les paramètres de type value class (CurrencyCode).
     private val catalog =
         object : CurrencyCatalog {

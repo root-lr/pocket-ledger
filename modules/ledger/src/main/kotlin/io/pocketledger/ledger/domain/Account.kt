@@ -208,19 +208,7 @@ class Account(id: UUID) : EventSourcedAggregate<AccountState>(id, AccountState()
             is AccountArchived -> state.copy(archived = true)
             is AccountReactivated -> state.copy(archived = false)
             is LowBalanceThresholdSet -> state.copy(lowThresholdMinor = event.thresholdMinor)
-            is TransactionRecorded ->
-                state.copy(
-                    balanceMinor = state.balanceMinor + event.amountMinor,
-                    transactions =
-                        state.transactions +
-                            (
-                                event.transactionId to
-                                    TxState(
-                                        event.amountMinor, event.valueDate, event.label, event.merchant, event.merchantHash,
-                                        event.labelTokens, event.note, event.tags, event.parts, event.revision, false, event.transferId,
-                                    )
-                            ),
-                )
+            is TransactionRecorded -> recorded(state, event)
             is TransactionAmended ->
                 updateTx(state, event.transactionId, event.amountMinor - event.previousAmountMinor) {
                     it.copy(
@@ -235,6 +223,18 @@ class Account(id: UUID) : EventSourcedAggregate<AccountState>(id, AccountState()
                 updateTx(state, event.transactionId, -event.amountMinor) { it.copy(voided = true, revision = event.revision) }
             else -> state
         }
+
+    private fun recorded(state: AccountState, event: TransactionRecorded): AccountState {
+        val tx =
+            TxState(
+                event.amountMinor, event.valueDate, event.label, event.merchant, event.merchantHash,
+                event.labelTokens, event.note, event.tags, event.parts, event.revision, false, event.transferId,
+            )
+        return state.copy(
+            balanceMinor = state.balanceMinor + event.amountMinor,
+            transactions = state.transactions + (event.transactionId to tx),
+        )
+    }
 
     private fun updateTx(state: AccountState, txId: UUID, balanceDelta: Long, change: (TxState) -> TxState): AccountState =
         state.copy(
