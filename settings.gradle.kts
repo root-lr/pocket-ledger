@@ -23,4 +23,5 @@ include(
     "modules:events",
     "modules:platform",
     "modules:crypto",
+    "modules:fx",
 )
