@@ -1,0 +1,11 @@
+meta {
+  name: Sync delta mobile
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/v1/sync?limit=200
+  body: none
+  auth: inherit
+}

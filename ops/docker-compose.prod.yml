@@ -1,0 +1,80 @@
+# Surcharge pour la VM de démo (PRD §10.4) :
+#   docker compose -f ops/docker-compose.yml -f ops/docker-compose.prod.yml --profile full up -d
+# Seul Caddy est exposé (443). Les secrets sont lus depuis ops/secrets/ (jamais commités).
+# En pratique, passer par ops/scripts/deploy.sh.
+
+services:
+  postgres:
+    ports: !reset []
+    restart: unless-stopped
+
+  kafka:
+    ports: !reset []
+    restart: unless-stopped
+
+  connect:
+    ports: !reset []
+    restart: unless-stopped
+
+  redis:
+    ports: !reset []
+    restart: unless-stopped
+
+  app:
+    ports: !reset []
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PUBLIC_URL: https://${DOMAIN}
+      TRACING_SAMPLING: "0.2"
+    # Clés de chiffrement et JWT ; DB_PASSWORD est exporté par scripts/deploy.sh (prioritaire sur env_file).
+    env_file:
+      - ./secrets/app.env
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
+
+  lgtm:
+    ports: !reset []
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["full"]
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      DOMAIN: ${DOMAIN}
+      GRAFANA_USER: ${GRAFANA_USER:-ops}
+      GRAFANA_HASH: ${GRAFANA_HASH}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+
+  backup:
+    image: postgres:16-alpine
+    profiles: ["full"]
+    restart: unless-stopped
+    depends_on: [postgres]
+    environment:
+      PGPASSWORD_FILE: /run/secrets/db_password
+      BACKUP_PASSPHRASE_FILE: /run/secrets/backup_passphrase
+    secrets: [db_password, backup_passphrase]
+    volumes:
+      - ./scripts/backup.sh:/backup.sh:ro
+      - backups:/backups
+    entrypoint: ["/bin/sh", "-c", "while true; do /backup.sh; sleep 86400; done"]
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
+  backup_passphrase:
+    file: ./secrets/backup_passphrase
+
+volumes:
+  caddy-data:
+  backups:

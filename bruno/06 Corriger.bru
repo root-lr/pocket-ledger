@@ -1,0 +1,22 @@
+meta {
+  name: Corriger (If-Match)
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/transactions/{{transactionId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  If-Match: "1"
+}
+
+body:json {
+  {
+    "amount": "-13000",
+    "note": "pourboire inclus"
+  }
+}

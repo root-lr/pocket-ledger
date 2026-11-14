@@ -1,0 +1,18 @@
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+script:pre-request {
+  // Toute écriture exige une clé d'idempotence (PRD §6.2).
+  const uuid = () => "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+  if (req.getMethod() !== "GET" && !req.getHeader("Idempotency-Key")) {
+    req.setHeader("Idempotency-Key", uuid());
+  }
+}

@@ -1,0 +1,11 @@
+meta {
+  name: Rechercher des transactions
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v1/transactions?q=belier&limit=20
+  body: none
+  auth: inherit
+}

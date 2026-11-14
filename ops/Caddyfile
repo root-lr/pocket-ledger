@@ -1,0 +1,20 @@
+# TLS Let's Encrypt automatique. Seul point d'entrée public de la VM.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy app:8080
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		-Server
+	}
+	# Les métriques restent internes.
+	@internal path /actuator/prometheus /actuator/metrics*
+	respond @internal 404
+}
+
+grafana.{$DOMAIN} {
+	basicauth {
+		{$GRAFANA_USER} {$GRAFANA_HASH}
+	}
+	reverse_proxy lgtm:3000
+}

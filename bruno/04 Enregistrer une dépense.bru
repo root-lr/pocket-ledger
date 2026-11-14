@@ -1,0 +1,27 @@
+meta {
+  name: Enregistrer une dépense
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/v1/transactions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "accountId": "{{accountId}}",
+    "amount": "-12500",
+    "valueDate": "{{today}}",
+    "label": "Restaurant Le Bélier",
+    "merchant": "Le Bélier",
+    "categoryId": "food.restaurants",
+    "tags": ["sortie"]
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("transactionId", res.body.transactionId);
+}

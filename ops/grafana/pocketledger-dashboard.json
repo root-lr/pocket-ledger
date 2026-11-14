@@ -1,0 +1,80 @@
+{
+  "title": "PocketLedger — santé de l'API et du pipeline d'événements",
+  "uid": "pocketledger-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "tags": ["pocketledger"],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Latence p95 par route (s)",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, uri, method) (rate(http_server_requests_seconds_bucket{application=\"pocketledger\"}[5m])))",
+          "legendFormat": "{{method}} {{uri}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Requêtes en erreur (5xx / s)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{application=\"pocketledger\",status=~\"5..\"}[5m]))", "legendFormat": "5xx" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Délai événement → traitement, p95 (s)",
+      "description": "Cible PRD : < 1 s pour les projections, < 5 s pour les alertes",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, processor) (rate(pocketledger_processing_lag_seconds_bucket[5m])))",
+          "legendFormat": "{{processor}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Lag des consommateurs Kafka (messages)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "max by (client_id) (kafka_consumer_fetch_manager_records_lag_max)", "legendFormat": "{{client_id}}" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "WAL retenu par le slot Debezium",
+      "description": "Alerte au-delà de 1 Go : le connecteur ne consomme plus",
+      "gridPos": { "x": 0, "y": 16, "w": 6, "h": 6 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1073741824 } ] } } },
+      "targets": [ { "expr": "max(pocketledger_debezium_slot_lag_bytes)" } ]
+    },
+    {
+      "type": "stat",
+      "title": "Slot Debezium actif",
+      "gridPos": { "x": 6, "y": 16, "w": 6, "h": 6 },
+      "targets": [ { "expr": "max(pocketledger_debezium_slot_active)" } ]
+    },
+    {
+      "type": "stat",
+      "title": "Écarts de réconciliation",
+      "description": "Doit rester à 0",
+      "gridPos": { "x": 12, "y": 16, "w": 6, "h": 6 },
+      "targets": [ { "expr": "sum(pocketledger_reconciliation_mismatches_total)" } ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Rejeux idempotents et conflits de version (/ min)",
+      "gridPos": { "x": 18, "y": 16, "w": 6, "h": 6 },
+      "targets": [
+        { "expr": "sum(rate(pocketledger_idempotency_replays_total[5m])) * 60", "legendFormat": "rejeux" },
+        { "expr": "sum(rate(pocketledger_commands_version_conflicts_total[5m])) * 60", "legendFormat": "conflits" }
+      ]
+    }
+  ]
+}
