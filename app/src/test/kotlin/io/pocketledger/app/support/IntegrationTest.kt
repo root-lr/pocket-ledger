@@ -118,6 +118,15 @@ abstract class IntegrationTest {
 
         init {
             Startables.deepStart(postgres, kafka, connect, redis).join()
+            // Diagnostic réseau temporaire : Kafka Connect joint-il PostgreSQL ?
+            val nets = postgres.containerInfo.networkSettings.networks.map { "${it.key}=${it.value.ipAddress}" }
+            val connectNets = connect.containerInfo.networkSettings.networks.map { "${it.key}=${it.value.ipAddress}" }
+            println("DIAG postgres networks=$nets connect networks=$connectNets aliases=${postgres.networkAliases}")
+            listOf("postgres", "kafka").forEach { host ->
+                val port = if (host == "postgres") 5432 else 19092
+                val probe = connect.execInContainer("bash", "-c", "timeout 3 bash -c '</dev/tcp/$host/$port' && echo OK || echo FAIL")
+                println("DIAG tcp $host:$port -> ${probe.stdout.trim()} ${probe.stderr.trim()}")
+            }
         }
 
         @JvmStatic
