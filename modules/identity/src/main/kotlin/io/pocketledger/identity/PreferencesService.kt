@@ -85,21 +85,19 @@ class PreferencesService(
     @Transactional
     fun update(userId: UUID, patch: PreferencesPatch): Preferences {
         val current = get(userId)
+        patch.budgetMonthStartDay?.let {
+            if (it !in 1..28) throw ValidationException("invalid-start-day", "Jour de début entre 1 et 28")
+        }
+        patch.disabledAlerts?.firstOrNull { it !in AlertTypes.all }?.let {
+            throw ValidationException("unknown-alert-type", "Type d'alerte inconnu : $it")
+        }
         val next =
             current.copy(
                 referenceCurrency = patch.referenceCurrency?.let { money.currency(it).value } ?: current.referenceCurrency,
                 timezone = patch.timezone?.let(::validZone) ?: current.timezone,
-                budgetMonthStartDay =
-                    patch.budgetMonthStartDay?.also {
-                        if (it !in 1..28) throw ValidationException("invalid-start-day", "Jour de début entre 1 et 28")
-                    } ?: current.budgetMonthStartDay,
+                budgetMonthStartDay = patch.budgetMonthStartDay ?: current.budgetMonthStartDay,
                 language = patch.language?.take(5) ?: current.language,
-                disabledAlerts =
-                    patch.disabledAlerts?.also { list ->
-                        list.firstOrNull { it !in AlertTypes.all }?.let {
-                            throw ValidationException("unknown-alert-type", "Type d'alerte inconnu : $it")
-                        }
-                    } ?: current.disabledAlerts,
+                disabledAlerts = patch.disabledAlerts ?: current.disabledAlerts,
             )
         jdbc
             .sql(
