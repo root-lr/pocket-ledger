@@ -173,6 +173,7 @@ class TransactionController(
     }
 
     @GetMapping
+    @Suppress("LongParameterList") // un paramètre par filtre de recherche
     fun search(
         @RequestParam(required = false) accountId: UUID?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate?,

@@ -14,7 +14,7 @@ import java.util.UUID
 object CurrentUser {
     fun id(): UUID =
         SecurityContextHolder.getContext().authentication?.name?.let(UUID::fromString)
-            ?: throw IllegalStateException("Aucun utilisateur authentifié")
+            ?: error("Aucun utilisateur authentifié")
 }
 
 /** Montant exposé par l'API : unités mineures, décimal formaté et devise. */

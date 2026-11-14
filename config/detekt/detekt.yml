@@ -9,9 +9,15 @@ complexity:
     thresholdInClasses: 25
     thresholdInFiles: 30
   LongMethod:
-    threshold: 80
+    threshold: 100
+  NestedBlockDepth:
+    threshold: 6
   CyclomaticComplexMethod:
     threshold: 20
+
+performance:
+  SpreadOperator:
+    active: false
 
 style:
   MagicNumber:

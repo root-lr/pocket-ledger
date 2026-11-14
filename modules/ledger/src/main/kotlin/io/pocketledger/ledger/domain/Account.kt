@@ -62,7 +62,7 @@ data class TxText(
  * pour que les invariants (compte actif, devise, split équilibré) soient vérifiés atomiquement (ADR-004).
  */
 class Account(id: UUID) : EventSourcedAggregate<AccountState>(id, AccountState()) {
-    val currency: String get() = state.currency ?: throw IllegalStateException("Compte non ouvert")
+    val currency: String get() = state.currency ?: error("Compte non ouvert")
 
     fun open(name: String, type: AccountType, currency: String, openingBalanceMinor: Long, openedOn: LocalDate) {
         if (state.opened) throw ConflictException("account-exists", "Compte déjà ouvert")
