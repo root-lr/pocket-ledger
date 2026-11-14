@@ -130,7 +130,12 @@ abstract class IntegrationTest {
             registry.add("spring.data.redis.host", redis::getHost)
             registry.add("spring.data.redis.port") { redis.getMappedPort(6379) }
             registry.add("pocketledger.debezium.connect-url", connect::getTarget)
-            registry.add("pocketledger.debezium.database.host") { "postgres" }
+            // Adresse de PostgreSQL vue depuis Kafka Connect, sur le réseau Docker partagé.
+            registry.add("pocketledger.debezium.database.host") {
+                postgres.containerInfo.networkSettings.networks.values
+                    .first { it.networkID == network.id }
+                    .ipAddress
+            }
             registry.add("pocketledger.debezium.database.user", postgres::getUsername)
             registry.add("pocketledger.debezium.database.password", postgres::getPassword)
             registry.add("pocketledger.debezium.database.name", postgres::getDatabaseName)
