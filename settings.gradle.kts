@@ -29,4 +29,5 @@ include(
     "modules:categorization",
     "modules:budgeting",
     "modules:analytics",
+    "modules:alerting",
 )
