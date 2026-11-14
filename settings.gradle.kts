@@ -28,4 +28,5 @@ include(
     "modules:ledger",
     "modules:categorization",
     "modules:budgeting",
+    "modules:analytics",
 )
